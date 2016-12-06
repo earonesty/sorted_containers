@@ -13,6 +13,7 @@ from math import log as log_e
 import operator as op
 from operator import iadd, add
 from sys import hexversion
+import __builtin__
 
 if hexversion < 0x03000000:
     from itertools import izip as zip
@@ -55,7 +56,7 @@ class SortedList(MutableSequence):
     in sorted order.
     """
 
-    def __init__(self, iterable=None, load=1000):
+    def __init__(self, iterable=None, load=1000, sorted=False):
         """
         SortedList provides most of the same methods as a list but keeps the
         items in sorted order.
@@ -80,7 +81,7 @@ class SortedList(MutableSequence):
         self._offset = 0
 
         if iterable is not None:
-            self._update(iterable)
+            self._update(iterable, sorted=sorted)
 
     def __new__(cls, iterable=None, key=None, load=1000):
         """
@@ -172,11 +173,15 @@ class SortedList(MutableSequence):
                     child = (child - 1) >> 1
                 _index[0] += 1
 
-    def update(self, iterable):
+    def update(self, iterable, sorted=False):
         """Update the list by adding all elements from *iterable*."""
         _lists = self._lists
         _maxes = self._maxes
-        values = sorted(iterable)
+        
+        if not sorted and not hasattr(iterable, "sorted"):
+            values = __builtin__.sorted(iterable)
+        else:
+            values = list(iterable)
 
         if _maxes:
             if len(values) * 4 >= self._len:
